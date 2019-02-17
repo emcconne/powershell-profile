@@ -4,7 +4,7 @@
 # Set-ExecutionPolicy unrestricted
 
 # So we can launch pwsh in subshells if we need
-Add-PathVariable "${env:ProgramFiles}\PowerShell\6-preview"
+Add-PathVariable "${env:ProgramFiles}\PowerShell\6"
 
 $profileDir = $PSScriptRoot;
 
@@ -91,11 +91,29 @@ function get-process-for-port($port) {
 	Get-Process -Id (Get-NetTCPConnection -LocalPort $port).OwningProcess
 }
 
-foreach ( $includeFile in ("defaults", "openssl", "unix", "development", "node") ) {
+foreach ( $includeFile in ("defaults", "unix", "development", "kubectl") ) {
 	Unblock-File $profileDir\$includeFile.ps1
 . "$profileDir\$includeFile.ps1"
 }
 
 set-location $env:DOCUMENTS
 
-write-output 'Mike profile loaded.'
+
+# Like Unix touch, creates new files and updates time on old ones
+# PSCX has a touch, but it doesn't make empty files
+Remove-Alias touch
+function touch($file) {
+	if ( Test-Path $file ) {
+		Set-FileTime $file
+	} else {
+		New-Item $file -type file
+	}
+}
+# Not overly useful since you can't run the commands but at least
+# you can see what has been done session to session
+function all-history 
+{ 
+    Get-Content (Get-PSReadlineOption).HistorySavePath 
+}
+
+write-output "Brent's profile loaded."
